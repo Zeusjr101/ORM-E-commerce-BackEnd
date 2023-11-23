@@ -9,7 +9,7 @@ router.get("/", async (req, res) => {
   // be sure to include its associated Category and Tag data
   try {
     const productDate = await Product.findAll({
-      include: [{ module: Category }, { module: Tag }],
+      include: [{ model: Category }, { model: Tag }],
     });
     res.status(200).json(productDate);
   } catch (err) {
@@ -23,7 +23,7 @@ router.get("/:id", async (req, res) => {
   // be sure to include its associated Category and Tag data
   try {
     const productDate = await Product.findByPk(req.params.id, {
-      include: [{ module: Category }, { module: Tag }],
+      include: [{ model: Category }, { model: Tag }],
     });
     if (!productDate) {
       res.status(404).json({ message: "No Product found with this id" });
@@ -111,8 +111,24 @@ router.put("/:id", async(req, res) => {
     });
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async (req, res) => {
   // delete one product by its `id` value
+  try {
+    // delete a tag by its `id` value
+    const rowsDeleted = await Product.destroy({
+      where: { id: req.params.id },
+    });
+
+    if (rowsDeleted === 0) {
+      res.status(404).json({ message: 'Tag not found' });
+      return;
+    }
+
+    res.status(204).end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 module.exports = router;
